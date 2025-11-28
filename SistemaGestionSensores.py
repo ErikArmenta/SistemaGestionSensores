@@ -61,15 +61,15 @@ def save_solicitud_to_sheet(solicitud):
     try:
         worksheet.append_row([
             solicitud["Timestamp"],
-            solicitud["Nombre"],
-            solicitud["Nómina"],
-            solicitud["Línea"],
-            solicitud["Estación/Máquina"],
-            solicitud["Cantidad"],
-            solicitud["Turno"],
-            solicitud["Motivo"],
-            solicitud["NumParte"],
-            solicitud["NombreSensor"]
+            solicitud["nombre_sensor"],
+            solicitud["nomina"],
+            solicitud["linea"],
+            solicitud["estacion"],
+            solicitud["cantidad"],
+            solicitud["turno"],
+            solicitud["motivo"],
+            solicitud["num_parte"],
+            solicitud["descipcion"]
         ])
 
         # Agregar a session_state
@@ -82,6 +82,7 @@ def save_solicitud_to_sheet(solicitud):
     except Exception as e:
         st.error(f"Error al guardar: {str(e)}")
         return False
+
 
 
 # Configuración de la página
@@ -239,16 +240,17 @@ if st.session_state.get("show_modal", False):
             if all([nombre, nomina, linea, estacion, turno, motivo]):
                 nueva = {
                     "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "Nombre": nombre,
-                    "Nómina": nomina,
-                    "Línea": linea,
-                    "Estación/Máquina": estacion,
-                    "Cantidad": cantidad,
-                    "Turno": turno,
-                    "Motivo": motivo,
-                    "NumParte": sensor["NumParte"],
-                    "NombreSensor": sensor["Nombre"]
-                }
+                    "nombre_sensor": sensor["Nombre"],
+                    "nomina": nomina,
+                    "linea": linea,
+                    "estacion": estacion,
+                    "cantidad": cantidad,
+                    "turno": turno,
+                    "motivo": motivo,
+                    "num_parte": sensor["NumParte"],
+                    "descipcion": sensor["Descripción"]
+            }
+
 
                 if save_solicitud_to_sheet(nueva):
                     st.success("Solicitud enviada correctamente")
@@ -279,11 +281,11 @@ elif menu == "📊 Dashboard":
         with col1:
             st.metric("Total Solicitudes", len(df))
         with col2:
-            st.metric("Sensores Únicos", df['Nombre'].nunique())
+            st.metric("Sensores Únicos", df['nombre_sensor'].nunique())
         with col3:
-            st.metric("Líneas Activas", df['Línea'].nunique())
+            st.metric("Líneas Activas", df['linea'].nunique())
         with col4:
-            st.metric("Cantidad Total", df['Cantidad'].sum())
+            st.metric("Cantidad Total", df['cantidad'].sum())
 
         st.markdown("---")
 
@@ -293,7 +295,7 @@ elif menu == "📊 Dashboard":
         with col1:
             # Solicitudes por Línea
             fig_linea = px.bar(
-                df.groupby('Línea').size().reset_index(name='Solicitudes'),
+                df.groupby('linea').size().reset_index(name='Solicitudes'),
                 x='Línea',
                 y='Solicitudes',
                 title='Solicitudes por Línea',
@@ -307,7 +309,7 @@ elif menu == "📊 Dashboard":
             # Solicitudes por Persona
             fig_persona = px.pie(
                 df,
-                names='Nombre',
+                names='nombre_sensor',
                 title='Solicitudes por Persona',
                 hole=0.4
             )
@@ -318,7 +320,7 @@ elif menu == "📊 Dashboard":
         with col3:
             # Solicitudes por Estación/Máquina
             fig_estacion = px.bar(
-                df.groupby('Estación/Máquina').size().reset_index(name='Solicitudes'),
+                df.groupby('estacion').size().reset_index(name='Solicitudes'),
                 x='Estación/Máquina',
                 y='Solicitudes',
                 title='Solicitudes por Estación/Máquina',
@@ -331,7 +333,7 @@ elif menu == "📊 Dashboard":
         with col4:
             # Frecuencia de Sensores
             fig_sensor = px.bar(
-                df.groupby('NombreSensor').size().reset_index(name='Frecuencia'),
+                df.groupby('nombre_sensor').size().reset_index(name='Frecuencia'),
                 y='NombreSensor',
                 x='Frecuencia',
                 title='Sensores Más Solicitados',
@@ -368,20 +370,20 @@ elif menu == "📋 Solicitudes":
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            filtro_linea = st.multiselect("Línea", options=df['Línea'].unique())
+            filtro_linea = st.multiselect("Línea", options=df['linea'].unique())
         with col2:
-            filtro_turno = st.multiselect("Turno", options=df['Turno'].unique())
+            filtro_turno = st.multiselect("Turno", options=df['turno'].unique())
         with col3:
-            filtro_sensor = st.multiselect("Sensor", options=df['NombreSensor'].unique())
+            filtro_sensor = st.multiselect("Sensor", options=df['nombre_sensor'].unique())
 
         # Aplicar filtros
         df_filtrado = df.copy()
         if filtro_linea:
-            df_filtrado = df_filtrado[df_filtrado['Línea'].isin(filtro_linea)]
+            df_filtrado = df_filtrado[df_filtrado['linea'].isin(filtro_linea)]
         if filtro_turno:
-            df_filtrado = df_filtrado[df_filtrado['Turno'].isin(filtro_turno)]
+            df_filtrado = df_filtrado[df_filtrado['turno'].isin(filtro_turno)]
         if filtro_sensor:
-            df_filtrado = df_filtrado[df_filtrado['NombreSensor'].isin(filtro_sensor)]
+            df_filtrado = df_filtrado[df_filtrado['nombre_sensor'].isin(filtro_sensor)]
 
         st.markdown(f"**Mostrando {len(df_filtrado)} de {len(df)} solicitudes**")
 
