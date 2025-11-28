@@ -279,7 +279,7 @@ elif menu == "📊 Dashboard":
         with col1:
             st.metric("Total Solicitudes", len(df))
         with col2:
-            st.metric("Sensores Únicos", df['NombreSensor'].nunique())
+            st.metric("Sensores Únicos", df['Nombre'].nunique())
         with col3:
             st.metric("Líneas Activas", df['Línea'].nunique())
         with col4:
