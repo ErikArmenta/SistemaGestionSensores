@@ -294,24 +294,21 @@ elif menu == "📊 Dashboard":
 
         with col1:
             # Solicitudes por Línea
-            if "linea" in df.columns and len(df) > 0:
-                fig_linea = px.bar(
-                    df.groupby('linea').size().reset_index(name='Solicitudes'),
-                    x='linea',
-                    y='Solicitudes',
-                    color='Solicitudes'
-                )
-                st.plotly_chart(fig_linea)
-            else:
-                st.warning("No hay datos para mostrar en el gráfico de líneas.")
-
+            fig_linea = px.bar(
+                df.groupby('linea').size().reset_index(name='Solicitudes'),
+                x='linea',
+                y='Solicitudes',
+                color='Solicitudes',
+                title='Solicitudes por Línea'
+            )
+            st.plotly_chart(fig_linea, use_container_width=True)
 
         with col2:
-            # Solicitudes por Persona
+            # Solicitudes por Sensor
             fig_persona = px.pie(
                 df,
                 names='nombre_sensor',
-                title='Solicitudes por Persona',
+                title='Solicitudes por Sensor',
                 hole=0.4
             )
             st.plotly_chart(fig_persona, use_container_width=True)
@@ -320,27 +317,29 @@ elif menu == "📊 Dashboard":
 
         with col3:
             # Solicitudes por Estación/Máquina
+            df_est = df.groupby('estacion').size().reset_index(name='Solicitudes')
+
             fig_estacion = px.bar(
-                df.groupby('estacion').size().reset_index(name='Solicitudes'),
-                x='Estación/Máquina',
+                df_est,
+                x='estacion',
                 y='Solicitudes',
                 title='Solicitudes por Estación/Máquina',
-                color='Solicitudes',
-                color_continuous_scale='Purples'
+                color='Solicitudes'
             )
             fig_estacion.update_layout(showlegend=False)
             st.plotly_chart(fig_estacion, use_container_width=True)
 
         with col4:
             # Frecuencia de Sensores
+            df_freq = df.groupby('nombre_sensor').size().reset_index(name='Frecuencia')
+
             fig_sensor = px.bar(
-                df.groupby('nombre_sensor').size().reset_index(name='Frecuencia'),
-                y='NombreSensor',
+                df_freq,
+                y='nombre_sensor',
                 x='Frecuencia',
                 title='Sensores Más Solicitados',
                 orientation='h',
-                color='Frecuencia',
-                color_continuous_scale='Greens'
+                color='Frecuencia'
             )
             fig_sensor.update_layout(showlegend=False, height=400)
             st.plotly_chart(fig_sensor, use_container_width=True)
@@ -348,6 +347,7 @@ elif menu == "📊 Dashboard":
         # Gráfico de tendencia temporal
         st.subheader("📅 Tendencia Temporal")
         df['Fecha'] = pd.to_datetime(df['Timestamp']).dt.date
+
         fig_tiempo = px.line(
             df.groupby('Fecha').size().reset_index(name='Solicitudes'),
             x='Fecha',
@@ -356,6 +356,7 @@ elif menu == "📊 Dashboard":
             markers=True
         )
         st.plotly_chart(fig_tiempo, use_container_width=True)
+
 
 # ============= PÁGINA: SOLICITUDES =============
 elif menu == "📋 Solicitudes":
