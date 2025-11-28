@@ -276,9 +276,6 @@ elif menu == "📊 Dashboard":
     else:
         df = pd.DataFrame(st.session_state.solicitudes)
 
-        # Convertir fecha
-        df['Fecha'] = pd.to_datetime(df['Timestamp'])
-
         # Métricas generales
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -295,137 +292,70 @@ elif menu == "📊 Dashboard":
         # Gráficos
         col1, col2 = st.columns(2)
 
-        # ==========================
-        #   GRAFICO: SOLICITUDES POR LÍNEA
-        # ==========================
         with col1:
-            df_linea = df.groupby('linea').agg({
-                'Timestamp': 'count',
-                'estacion': lambda x: list(x),
-                'nombre_sensor': lambda x: list(x),
-                'Fecha': lambda x: list(x)
-            }).reset_index().rename(columns={'Timestamp':'Solicitudes'})
-
+            # Solicitudes por Línea
             fig_linea = px.bar(
-                df_linea,
+                df.groupby('linea').size().reset_index(name='Solicitudes'),
                 x='linea',
                 y='Solicitudes',
                 color='Solicitudes',
-                title='Solicitudes por Línea',
-                hover_data={
-                    "Fecha": True,
-                    "estacion": True,
-                    "nombre_sensor": True
-                }
+                title='Solicitudes por Línea'
             )
             st.plotly_chart(fig_linea, use_container_width=True)
 
-        # ==========================
-        #   GRAFICO ANILLO: SOLICITUDES POR PERSONA
-        # ==========================
         with col2:
+            # Solicitudes por persona
             fig_persona = px.pie(
                 df,
                 names='nomina',
-                hole=0.4,
                 title='Solicitudes por Persona',
-                hover_data={
-                    "Fecha": True,
-                    "estacion": True,
-                    "nombre_sensor": True
-                }
+                hole=0.4
             )
             st.plotly_chart(fig_persona, use_container_width=True)
 
         col3, col4 = st.columns(2)
 
-        # ==========================
-        #   GRAFICO: SOLICITUDES POR ESTACIÓN
-        # ==========================
         with col3:
+            # Solicitudes por Estación/Máquina
             df_est = df.groupby('estacion').size().reset_index(name='Solicitudes')
+
             fig_estacion = px.bar(
                 df_est,
                 x='estacion',
                 y='Solicitudes',
-                color='Solicitudes',
                 title='Solicitudes por Estación/Máquina',
-                hover_data={
-                    "Fecha": df['Fecha'],
-                    "nomina": df['nomina']
-                }
+                color='Solicitudes'
             )
             fig_estacion.update_layout(showlegend=False)
             st.plotly_chart(fig_estacion, use_container_width=True)
 
-        # ==========================
-        #   GRAFICO: SENSORES MÁS SOLICITADOS
-        # ==========================
         with col4:
-            df_freq = df.groupby('nombre_sensor').agg({
-                'Timestamp': 'count',
-                'num_parte': lambda x: list(x),
-                'cantidad': lambda x: list(x),
-                'Fecha': lambda x: list(x)
-            }).reset_index().rename(columns={'Timestamp': 'Frecuencia'})
+            # Frecuencia de Sensores
+            df_freq = df.groupby('nombre_sensor').size().reset_index(name='Frecuencia')
 
             fig_sensor = px.bar(
                 df_freq,
-                y='nombre_sensor',
+                y='num_parte',
                 x='Frecuencia',
-                orientation='h',
                 title='Sensores Más Solicitados',
-                hover_data={
-                    "Fecha": True,
-                    "num_parte": True,
-                    "cantidad": True
-                },
+                orientation='h',
                 color='Frecuencia'
             )
             fig_sensor.update_layout(showlegend=False, height=400)
             st.plotly_chart(fig_sensor, use_container_width=True)
 
-        # ==========================
-        #   GRÁFICO: TENDENCIA TEMPORAL
-        # ==========================
+        # Gráfico de tendencia temporal
         st.subheader("📅 Tendencia Temporal")
-
-        df_trend = df.groupby(df['Fecha'].dt.date).size().reset_index(name='Solicitudes')
-        df_trend['Fecha'] = pd.to_datetime(df_trend['Fecha'])
+        df['Fecha'] = pd.to_datetime(df['Timestamp']).dt.date
 
         fig_tiempo = px.line(
-            df_trend,
+            df.groupby('Fecha').size().reset_index(name='Solicitudes'),
             x='Fecha',
             y='Solicitudes',
             title='Solicitudes por Día',
-            markers=True,
-            hover_data=df.to_dict(orient='list')
+            markers=True
         )
-
-        # Líneas guía (días/semanas/meses/años)
-        fig_tiempo.update_xaxes(
-            dtick="D1",
-            showgrid=True,
-            gridwidth=0.3
-        )
-        fig_tiempo.update_xaxes(
-            dtick="M1",
-            showgrid=True,
-            gridcolor="lightblue"
-        )
-        fig_tiempo.update_xaxes(
-            dtick="M3",
-            showgrid=True,
-            gridcolor="lightgreen"
-        )
-        fig_tiempo.update_xaxes(
-            dtick="M12",
-            showgrid=True,
-            gridcolor="orange"
-        )
-
         st.plotly_chart(fig_tiempo, use_container_width=True)
-
 
 
 # ============= PÁGINA: SOLICITUDES =============
