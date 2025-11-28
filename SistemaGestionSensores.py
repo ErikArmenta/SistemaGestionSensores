@@ -39,7 +39,8 @@ gc = gspread.authorize(credentials)
 # Conectar hoja de Google Sheets
 # --------------------------
 SPREADSHEET_ID = "1JLJBRgoHw0Kyl5igDMVRpt_atoe7AOx_gOncbS_4yL0"
-worksheet = gc.open_by_key(SPREADSHEET_ID).worksheet("Solicitudes")
+worksheet = gc.open_by_key(SPREADSHEET_ID).worksheet("SOLICITUDES")
+
 
 
 # --------------------------
