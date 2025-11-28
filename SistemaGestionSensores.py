@@ -418,4 +418,4 @@ if st.sidebar.button("🔄 Recargar datos desde Google Sheets"):
 
 st.sidebar.markdown("---")
 st.sidebar.caption("💡 Los datos se guardan automáticamente en Google Sheets")
-st.sidebar.caption("🔑 Asegúrate de tener las credenciales configuradas en Streamlit Secrets")
+st.sidebar.caption("**Sistema de Gestión de Sensores** | Developed by Master Engineer Erik Armenta")
