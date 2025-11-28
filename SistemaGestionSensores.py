@@ -294,16 +294,17 @@ elif menu == "📊 Dashboard":
 
         with col1:
             # Solicitudes por Línea
-            fig_linea = px.bar(
-                df.groupby('linea').size().reset_index(name='Solicitudes'),
-                x='Línea',
-                y='Solicitudes',
-                title='Solicitudes por Línea',
-                color='Solicitudes',
-                color_continuous_scale='Blues'
-            )
-            fig_linea.update_layout(showlegend=False)
-            st.plotly_chart(fig_linea, use_container_width=True)
+            if "linea" in df.columns and len(df) > 0:
+                fig_linea = px.bar(
+                    df.groupby('linea').size().reset_index(name='Solicitudes'),
+                    x='linea',
+                    y='Solicitudes',
+                    color='Solicitudes'
+                )
+                st.plotly_chart(fig_linea)
+            else:
+                st.warning("No hay datos para mostrar en el gráfico de líneas.")
+
 
         with col2:
             # Solicitudes por Persona
