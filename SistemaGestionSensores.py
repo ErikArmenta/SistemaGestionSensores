@@ -241,7 +241,7 @@ if st.session_state.get("show_modal", False):
             if all([nombre, nomina, linea, estacion, turno, motivo]):
                 nueva = {
                     "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "nombrePersona":nombre,
+                    "nombrePersona": nombre,
                     "nombre_sensor": sensor["Nombre"],
                     "nomina": nomina,
                     "linea": linea,
@@ -250,9 +250,8 @@ if st.session_state.get("show_modal", False):
                     "turno": turno,
                     "motivo": motivo,
                     "num_parte": sensor["NumParte"],
-                    "descipcion": sensor["Descripción"]
-            }
-
+                    "descripcion": sensor.get("Descripción", "")  # ← Agregado con get()
+                }
 
                 if save_solicitud_to_sheet(nueva):
                     st.success("Solicitud enviada correctamente")
