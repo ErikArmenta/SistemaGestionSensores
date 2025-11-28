@@ -331,29 +331,14 @@ elif menu == "📊 Dashboard":
                 names='nombrePersona',
                 values='Solicitudes',
                 title='Solicitudes por Persona',
-                hole=0.4,
-                hover_data={
-                    'nomina': True,
-                    'cantidad': True,
-                    'num_parte': True,
-                    'Solicitudes': True
-                }
+                hole=0.4
             )
-
-            # Personalizar el hover template
-            fig_persona.update_traces(
-                hovertemplate='<b>%{label}</b><br>' +
-                              'Solicitudes: %{value}<br>' +
-                              'Nómina: %{customdata[0]}<br>' +
-                              'Cantidad: %{customdata[1]}<br>' +
-                              'Num Parte: %{customdata[2]}<br>' +
-                              '<extra></extra>'
-            )
-
             st.plotly_chart(fig_persona, use_container_width=True)
 
+        # --- SEGUNDO ROW DE GRÁFICAS ---
+        col3, col4 = st.columns(2)
+
         with col3:
-            # Solicitudes por Estación/Máquina
             df_est = df.groupby('estacion').agg({
                 'estacion': 'size',
                 'nombrePersona': 'first',
@@ -366,19 +351,12 @@ elif menu == "📊 Dashboard":
                 x='estacion',
                 y='Solicitudes',
                 title='Solicitudes por Estación/Máquina',
-                color='Solicitudes',
-                hover_data={
-                    'nombrePersona': True,
-                    'cantidad': True,
-                    'num_parte': True,
-                    'Solicitudes': True
-                }
+                color='Solicitudes'
             )
             fig_estacion.update_layout(showlegend=False)
             st.plotly_chart(fig_estacion, use_container_width=True)
 
         with col4:
-            # Frecuencia de Sensores
             df_freq = df.groupby('nombre_sensor').agg({
                 'nombre_sensor': 'size',
                 'nombrePersona': 'first',
@@ -388,46 +366,15 @@ elif menu == "📊 Dashboard":
 
             fig_sensor = px.bar(
                 df_freq,
-                y='nombre_sensor',  # ← Corregido de 'num_parte' a 'nombre_sensor'
+                y='nombre_sensor',
                 x='Frecuencia',
                 title='Sensores Más Solicitados',
                 orientation='h',
-                color='Frecuencia',
-                hover_data={
-                    'nombrePersona': True,
-                    'cantidad': True,
-                    'num_parte': True,
-                    'Frecuencia': True
-                }
+                color='Frecuencia'
             )
             fig_sensor.update_layout(showlegend=False, height=400)
             st.plotly_chart(fig_sensor, use_container_width=True)
 
-        # Gráfico de tendencia temporal
-        st.subheader("📅 Tendencia Temporal")
-        df['Fecha'] = pd.to_datetime(df['Timestamp']).dt.date
-
-        df_tiempo = df.groupby('Fecha').agg({
-            'Fecha': 'size',
-            'nombrePersona': 'first',
-            'cantidad': 'sum',
-            'num_parte': 'first'
-        }).rename(columns={'Fecha': 'Solicitudes'}).reset_index()
-
-        fig_tiempo = px.line(
-            df_tiempo,
-            x='Fecha',
-            y='Solicitudes',
-            title='Solicitudes por Día',
-            markers=True,
-            hover_data={
-                'nombrePersona': True,
-                'cantidad': True,
-                'num_parte': True,
-                'Solicitudes': True
-            }
-        )
-        st.plotly_chart(fig_tiempo, use_container_width=True)
 
 
 # ============= PÁGINA: SOLICITUDES =============
