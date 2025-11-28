@@ -319,16 +319,38 @@ elif menu == "📊 Dashboard":
 
         with col2:
             # Solicitudes por persona
+            df_persona = df.groupby('nombrePersona').agg({
+                'nombrePersona': 'size',
+                'nomina': 'first',
+                'cantidad': 'sum',
+                'num_parte': 'first'
+            }).rename(columns={'nombrePersona': 'Solicitudes'}).reset_index()
+
             fig_persona = px.pie(
-                df,
-                names='nomina',
+                df_persona,
+                names='nombrePersona',
+                values='Solicitudes',
                 title='Solicitudes por Persona',
                 hole=0.4,
-                hover_data=['nombrePersona', 'cantidad', 'num_parte']
+                hover_data={
+                    'nomina': True,
+                    'cantidad': True,
+                    'num_parte': True,
+                    'Solicitudes': True
+                }
             )
-            st.plotly_chart(fig_persona, use_container_width=True)
 
-        col3, col4 = st.columns(2)
+            # Personalizar el hover template
+            fig_persona.update_traces(
+                hovertemplate='<b>%{label}</b><br>' +
+                              'Solicitudes: %{value}<br>' +
+                              'Nómina: %{customdata[0]}<br>' +
+                              'Cantidad: %{customdata[1]}<br>' +
+                              'Num Parte: %{customdata[2]}<br>' +
+                              '<extra></extra>'
+            )
+
+            st.plotly_chart(fig_persona, use_container_width=True)
 
         with col3:
             # Solicitudes por Estación/Máquina
