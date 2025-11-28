@@ -290,11 +290,11 @@ elif menu == "📊 Dashboard":
 
         st.markdown("---")
 
-        # Gráficos
+        # ==================== PRIMER ROW ====================
         col1, col2 = st.columns(2)
 
+        # ---- GRAFICO: Solicitudes por Línea ----
         with col1:
-            # Solicitudes por Línea
             df_linea = df.groupby('linea').agg({
                 'linea': 'size',
                 'nombrePersona': 'first',
@@ -317,8 +317,8 @@ elif menu == "📊 Dashboard":
             )
             st.plotly_chart(fig_linea, use_container_width=True)
 
+        # ---- GRAFICO: Solicitudes por Persona ----
         with col2:
-            # Solicitudes por persona
             df_persona = df.groupby('nombrePersona').agg({
                 'nombrePersona': 'size',
                 'nomina': 'first',
@@ -333,11 +333,23 @@ elif menu == "📊 Dashboard":
                 title='Solicitudes por Persona',
                 hole=0.4
             )
+
+            fig_persona.update_traces(
+                hovertemplate='<b>%{label}</b><br>' +
+                              'Solicitudes: %{value}<br>' +
+                              'Nómina: %{customdata[0]}<br>' +
+                              'Cant Total: %{customdata[1]}<br>' +
+                              'Num Parte: %{customdata[2]}<br>' +
+                              '<extra></extra>',
+                customdata=df_persona[['nomina', 'cantidad', 'num_parte']]
+            )
+
             st.plotly_chart(fig_persona, use_container_width=True)
 
-        # --- SEGUNDO ROW DE GRÁFICAS ---
+        # ==================== SEGUNDO ROW ====================
         col3, col4 = st.columns(2)
 
+        # ---- GRAFICO: Estaciones ----
         with col3:
             df_est = df.groupby('estacion').agg({
                 'estacion': 'size',
@@ -351,11 +363,17 @@ elif menu == "📊 Dashboard":
                 x='estacion',
                 y='Solicitudes',
                 title='Solicitudes por Estación/Máquina',
-                color='Solicitudes'
+                color='Solicitudes',
+                hover_data={
+                    'nombrePersona': True,
+                    'cantidad': True,
+                    'num_parte': True,
+                    'Solicitudes': True
+                }
             )
-            fig_estacion.update_layout(showlegend=False)
             st.plotly_chart(fig_estacion, use_container_width=True)
 
+        # ---- GRAFICO: Frecuencia de Sensores ----
         with col4:
             df_freq = df.groupby('nombre_sensor').agg({
                 'nombre_sensor': 'size',
@@ -368,12 +386,45 @@ elif menu == "📊 Dashboard":
                 df_freq,
                 y='nombre_sensor',
                 x='Frecuencia',
-                title='Sensores Más Solicitados',
                 orientation='h',
-                color='Frecuencia'
+                title='Sensores Más Solicitados',
+                color='Frecuencia',
+                hover_data={
+                    'nombrePersona': True,
+                    'cantidad': True,
+                    'num_parte': True,
+                    'Frecuencia': True
+                }
             )
-            fig_sensor.update_layout(showlegend=False, height=400)
             st.plotly_chart(fig_sensor, use_container_width=True)
+
+        # ==================== NUEVA GRAFICA: FRECUENCIA TEMPORAL ====================
+        st.subheader("📅 Frecuencia de Solicitudes por Día")
+
+        df['Fecha'] = pd.to_datetime(df['Timestamp']).dt.date
+
+        df_tiempo = df.groupby('Fecha').agg({
+            'Fecha': 'size',
+            'nombrePersona': 'first',
+            'cantidad': 'sum',
+            'num_parte': 'first'
+        }).rename(columns={'Fecha': 'Solicitudes'}).reset_index()
+
+        fig_tiempo = px.line(
+            df_tiempo,
+            x='Fecha',
+            y='Solicitudes',
+            title='Solicitudes por Día',
+            markers=True,
+            hover_data={
+                'nombrePersona': True,
+                'cantidad': True,
+                'num_parte': True,
+                'Solicitudes': True
+            }
+        )
+        st.plotly_chart(fig_tiempo, use_container_width=True)
+
 
 
 
