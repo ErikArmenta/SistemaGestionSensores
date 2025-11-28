@@ -61,6 +61,7 @@ def save_solicitud_to_sheet(solicitud):
     try:
         worksheet.append_row([
             solicitud["Timestamp"],
+            solicitud["nombrePersona"],  # ← Agregado
             solicitud["nombre_sensor"],
             solicitud["nomina"],
             solicitud["linea"],
@@ -69,7 +70,7 @@ def save_solicitud_to_sheet(solicitud):
             solicitud["turno"],
             solicitud["motivo"],
             solicitud["num_parte"],
-            solicitud["descipcion"]
+            solicitud["descripcion"]  # ← Agregado
         ])
 
         # Agregar a session_state
@@ -240,6 +241,7 @@ if st.session_state.get("show_modal", False):
             if all([nombre, nomina, linea, estacion, turno, motivo]):
                 nueva = {
                     "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "nombrePersona":nombre,
                     "nombre_sensor": sensor["Nombre"],
                     "nomina": nomina,
                     "linea": linea,
@@ -294,12 +296,25 @@ elif menu == "📊 Dashboard":
 
         with col1:
             # Solicitudes por Línea
+            df_linea = df.groupby('linea').agg({
+                'linea': 'size',
+                'nombrePersona': 'first',
+                'cantidad': 'sum',
+                'num_parte': 'first'
+            }).rename(columns={'linea': 'Solicitudes'}).reset_index()
+
             fig_linea = px.bar(
-                df.groupby('linea').size().reset_index(name='Solicitudes'),
+                df_linea,
                 x='linea',
                 y='Solicitudes',
                 color='Solicitudes',
-                title='Solicitudes por Línea'
+                title='Solicitudes por Línea',
+                hover_data={
+                    'nombrePersona': True,
+                    'cantidad': True,
+                    'num_parte': True,
+                    'Solicitudes': True
+                }
             )
             st.plotly_chart(fig_linea, use_container_width=True)
 
@@ -309,7 +324,8 @@ elif menu == "📊 Dashboard":
                 df,
                 names='nomina',
                 title='Solicitudes por Persona',
-                hole=0.4
+                hole=0.4,
+                hover_data=['nombrePersona', 'cantidad', 'num_parte']
             )
             st.plotly_chart(fig_persona, use_container_width=True)
 
@@ -317,29 +333,51 @@ elif menu == "📊 Dashboard":
 
         with col3:
             # Solicitudes por Estación/Máquina
-            df_est = df.groupby('estacion').size().reset_index(name='Solicitudes')
+            df_est = df.groupby('estacion').agg({
+                'estacion': 'size',
+                'nombrePersona': 'first',
+                'cantidad': 'sum',
+                'num_parte': 'first'
+            }).rename(columns={'estacion': 'Solicitudes'}).reset_index()
 
             fig_estacion = px.bar(
                 df_est,
                 x='estacion',
                 y='Solicitudes',
                 title='Solicitudes por Estación/Máquina',
-                color='Solicitudes'
+                color='Solicitudes',
+                hover_data={
+                    'nombrePersona': True,
+                    'cantidad': True,
+                    'num_parte': True,
+                    'Solicitudes': True
+                }
             )
             fig_estacion.update_layout(showlegend=False)
             st.plotly_chart(fig_estacion, use_container_width=True)
 
         with col4:
             # Frecuencia de Sensores
-            df_freq = df.groupby('nombre_sensor').size().reset_index(name='Frecuencia')
+            df_freq = df.groupby('nombre_sensor').agg({
+                'nombre_sensor': 'size',
+                'nombrePersona': 'first',
+                'cantidad': 'sum',
+                'num_parte': 'first'
+            }).rename(columns={'nombre_sensor': 'Frecuencia'}).reset_index()
 
             fig_sensor = px.bar(
                 df_freq,
-                y='num_parte',
+                y='nombre_sensor',  # ← Corregido de 'num_parte' a 'nombre_sensor'
                 x='Frecuencia',
                 title='Sensores Más Solicitados',
                 orientation='h',
-                color='Frecuencia'
+                color='Frecuencia',
+                hover_data={
+                    'nombrePersona': True,
+                    'cantidad': True,
+                    'num_parte': True,
+                    'Frecuencia': True
+                }
             )
             fig_sensor.update_layout(showlegend=False, height=400)
             st.plotly_chart(fig_sensor, use_container_width=True)
@@ -348,12 +386,25 @@ elif menu == "📊 Dashboard":
         st.subheader("📅 Tendencia Temporal")
         df['Fecha'] = pd.to_datetime(df['Timestamp']).dt.date
 
+        df_tiempo = df.groupby('Fecha').agg({
+            'Fecha': 'size',
+            'nombrePersona': 'first',
+            'cantidad': 'sum',
+            'num_parte': 'first'
+        }).rename(columns={'Fecha': 'Solicitudes'}).reset_index()
+
         fig_tiempo = px.line(
-            df.groupby('Fecha').size().reset_index(name='Solicitudes'),
+            df_tiempo,
             x='Fecha',
             y='Solicitudes',
             title='Solicitudes por Día',
-            markers=True
+            markers=True,
+            hover_data={
+                'nombrePersona': True,
+                'cantidad': True,
+                'num_parte': True,
+                'Solicitudes': True
+            }
         )
         st.plotly_chart(fig_tiempo, use_container_width=True)
 
