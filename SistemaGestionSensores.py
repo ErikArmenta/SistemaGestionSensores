@@ -41,6 +41,23 @@ gc = gspread.authorize(credentials)
 SPREADSHEET_ID = "1JLJBRgoHw0Kyl5igDMVRpt_atoe7AOx_gOncbS_4yL0"
 worksheet = gc.open_by_key(SPREADSHEET_ID).worksheet("SOLICITUDES")
 
+# --- Cargar lista de usuarios desde Google Sheets ---
+try:
+    hoja_usuarios = gc.open_by_key(SPREADSHEET_ID).worksheet("USUARIOS")
+    usuarios_raw = hoja_usuarios.get_all_records()
+
+    df_usuarios = pd.DataFrame(usuarios_raw)
+
+    # Listas para selects
+    lista_nombres = df_usuarios["nombrePersona"].dropna().unique().tolist()
+    dic_nomina_por_nombre = dict(zip(df_usuarios["nombrePersona"], df_usuarios["nomina"]))
+
+except Exception as e:
+    st.error(f"Error cargando hoja USUARIOS: {str(e)}")
+    lista_nombres = []
+    dic_nomina_por_nombre = {}
+
+
 
 
 # --------------------------
@@ -225,8 +242,15 @@ if st.session_state.get("show_modal", False):
 
         st.markdown(f"### Solicitar: {sensor['Nombre']}")
 
-        nombre = st.text_input("Nombre completo*")
-        nomina = st.text_input("Nómina*")
+        # --- SELECT DE NOMBRE Y AUTOCOMPLETE DE NÓMINA ---
+        nombre = st.selectbox("Nombre completo*", options=[""] + lista_nombres)
+
+        if nombre and nombre in dic_nomina_por_nombre:
+            nomina = dic_nomina_por_nombre[nombre]
+            st.text_input("Nómina*", value=str(nomina), disabled=True)
+        else:
+            nomina = st.text_input("Nómina* (si no está en la lista)")
+
         linea = st.text_input("Línea*")
         estacion = st.text_input("Estación/Máquina*")
         cantidad = st.number_input("Cantidad*", min_value=1, value=1)
